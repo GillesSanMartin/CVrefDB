@@ -30,3 +30,5 @@ Suggests:
 SystemRequirements:
     blastn, makeblastdb
 VignetteBuilder: knitr
+URL: https://github.com/GillesSanMartin/CVrefDB
+BugReports: https://github.com/GillesSanMartin/CVrefDB/issues
