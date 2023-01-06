@@ -27,7 +27,7 @@ There are two main functions :
 * `CV_blastn()` : This function will repeatedly extract a random sample of sequences from a DNA barcode reference database in fasta format, then blast these query sequences against the remainder of the database (k-fold cross-validation) or the whole database (leaked cross-validation) and return the output of the top blast hits with the true and predicted taxonomies and blastn statistics (bit score, identity,...).
 * `assign_taxonomy()` : This function will assign a taxonomy to sequences based on their top blastn hits. It can use different methods for the assignment based on the best bit score, the consensus score and it allows optionally to specify the minimum identity, length and E-value to take into consideration for each taxonomic level. The output contains a taxonomic assignment for each taxonomic level (species, genus, family,...) and identity and consensus scores that can be used to decide to dismiss untrustworthy assignments
 
-The vignette provides a simple example on how these functions interact with a few smaller functions useful to exploit and visualize the outputs. You can access the vignette after package installation with the following R command : `browseVignettes("CVrefDB")`.
+The vignette provides a simple example on how these functions interact with a few smaller functions useful to exploit and visualize the outputs. You can access the vignette after package installation with the following R command : `browseVignettes("CVrefDB")` or dirrectly on [github](https://raw.githubusercontent.com/GillesSanMartin/CVrefDB/master/vignettes/CVrefDB.pdf).
 
 
 
@@ -36,7 +36,7 @@ The vignette provides a simple example on how these functions interact with a fe
 **1. Install blast**
 
 `blastn` must be installed locally on your machine through you favorite package manager or by downloading installers from [the NCBI website](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download).   
-Under Windows you need to install for example the latest win64.exe file available on the (download page)[https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/].   
+Under Windows you need to install for example the latest win64.exe file available on the [download page](https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/).   
 Under debian based GNU/Linux you can for example use `sudo apt install ncibi-blast+`.
 
 To check that the installation works fine and that blast is visible from R you can type the folowing command in the R console : `system("blastn -version")` which should print your `blatn` version (and no error message).
@@ -57,16 +57,6 @@ BiocManager::install("Biostrings")
 
 This package is a companion to a publication and is not intended to be published on the CRAN.
 
-To install it from a bundled `tar.gz` file in the R console : 
-
-```
-# install first dependencies from CRAN
-install.packages(c("data.tables", "dplyr", "tidyr", "ggplot2"))
-# then install from source
-install.packages("/<insert your path here>/CVrefDB_0.0.1.tar.gz", 
-                 type = "source", repos = NULL)
-```
-
 To install the latest version form github : 
 
 ```
@@ -77,9 +67,21 @@ devtools::install_github("GillesSanMartin/CVrefDB")
 ```
 
 
+To install it from a bundled `tar.gz` file in the R console : 
+
+```
+# install first dependencies from CRAN
+install.packages(c("data.tables", "dplyr", "tidyr", "ggplot2"))
+# then install from source
+install.packages("/<insert your path here>/CVrefDB_0.0.1.tar.gz", 
+                 type = "source", repos = NULL)
+```
+
+
+
 ## Usage
 
-Look at the vignette for more details, graphs, ...
+Look at the [pdf vignette](https://raw.githubusercontent.com/GillesSanMartin/CVrefDB/master/vignettes/CVrefDB.pdf) for more details, graphs, ...
 
 
 ```{r, eval = FALSE, echo = TRUE}

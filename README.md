@@ -34,7 +34,8 @@ There are two main functions :
 The vignette provides a simple example on how these functions interact
 with a few smaller functions useful to exploit and visualize the
 outputs. You can access the vignette after package installation with the
-following R command : `browseVignettes("CVrefDB")`.
+following R command : `browseVignettes("CVrefDB")` or dirrectly on
+[github](https://raw.githubusercontent.com/GillesSanMartin/CVrefDB/master/vignettes/CVrefDB.pdf).
 
 ## Installation
 
@@ -44,8 +45,8 @@ following R command : `browseVignettes("CVrefDB")`.
 package manager or by downloading installers from [the NCBI
 website](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download).  
 Under Windows you need to install for example the latest win64.exe file
-available on the (download
-page)\[<https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/>\].  
+available on the [download
+page](https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/).  
 Under debian based GNU/Linux you can for example use
 `sudo apt install ncibi-blast+`.
 
@@ -87,7 +88,9 @@ To install the latest version form github :
 
 ## Usage
 
-Look at the vignette for more details, graphs, …
+Look at the [pdf
+vignette](https://raw.githubusercontent.com/GillesSanMartin/CVrefDB/master/vignettes/CVrefDB.pdf)
+for more details, graphs, …
 
 ``` r
 library(CVrefDB)
