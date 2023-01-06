@@ -1,0 +1,378 @@
+---
+title: "CVrefDB package vignette"
+author: ['Gilles San Martin']
+date: "`r Sys.setlocale('LC_ALL', 'en_GB.UTF-8'); format(Sys.time(), '%d %B %Y - %H:%M')`"
+output:
+     #rmarkdown::html_vignette
+     #pdf_document:
+     bookdown::pdf_document2:
+         toc: true
+         toc_depth: 5
+         fig_caption: true
+         number_sections: true
+         latex_engine: pdflatex
+         highlight: default # default # espresso # zenburn
+geometry: margin=0.7in
+documentclass: article # report
+fontsize: 11pt
+colorlinks: yes
+fontfamily: lmodern # mathpple # times # utopia # lmodern # bookman # mathpazo # for pdflatex engine
+vignette: >
+  %\VignetteIndexEntry{CVrefDB}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+header-includes:
+     - \usepackage{float} 
+     - \floatplacement{figure}{H} # to hold the figures in position
+---
+
+
+
+
+```{r, include = FALSE, cache = FALSE}
+
+library(knitr)
+
+# chunk hook in order to change the code output size
+# https://stackoverflow.com/a/46526740/2417437
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  # ifelse(options$size != "normalsize", paste0("\n \\", options$size,"\n\n", x, "\n\n \\normalsize"), x)
+  ifelse(options$size != "normalsize", paste0("\\", options$size,"\\smallskip\\smallskip", x, "\n\n \\normalsize"), x)
+  
+})
+
+opts_chunk$set(collapse = TRUE,  comment = "#>", 
+               echo = TRUE, results = "markup", cache = FALSE, 
+               dev = c("cairo_pdf", "png"), fig.width = 10/2.54, fig.height= 10/2.54, 
+               fig.align='center', dpi = 500,  dev.args=list(bg='white'), 
+               fig.cap = '  ',  fig.pos = "H", 
+               size = 'scriptsize', # via hook
+               warning = FALSE, error = FALSE, message = FALSE, 
+               tidy = FALSE, tidy.opts=list(width.cutoff=95))
+
+library(pander)
+panderOptions("table.style" , "rmarkdown")
+panderOptions("table.split.table" , Inf)
+panderOptions("table.alignment.rownames" , "right")
+panderOptions("table.alignment.default" , "right")
+panderOptions('round',3)
+panderOptions('digits',7)
+panderOptions("keep.trailing.zeros", TRUE)
+
+options(width = 125)
+# options(stringsAsFactors = TRUE)
+
+# Change printing options for tibbles
+options(tibble.print_max = 1000, tibble.print_min = 30, tibble.width = Inf)
+options(dplyr.summarise.inform = FALSE)
+
+```
+
+
+
+*********************************************************************************
+
+\newpage
+
+
+# Introduction
+
+Cross Validation (CV) of DNA barcodes reference databases (refDB) using blast.
+
+The main aim of this package is to repeatedly blast sequences of a DNA barcode reference database against itself to evaluate the quality of the taxonomic assignments at various taxonomic levels and using different strategies.
+
+There are two main functions : 
+
+* `CV_blastn()` : This function will repeatedly extract a random sample of sequences from a DNA barcode reference database in fasta format, then blast these query sequences against the remainder of the database (k-fold cross-validation) or the whole database (leaked cross-validation) and return the output of the top blast hits with the true and predicted taxonomies and blastn statistics (bit score, identity,...).
+* `assign_taxonomy()` : This function will assign a taxonomy to sequences based on their top blastn hits. It can use different methods for the assignment based on the best bit score, the consensus score and it allows optionally to specify the minimum identity, length and E-value to take into consideration for each taxonomic level. The output contains a taxonomic assignment for each taxonomic level (species, genus, family,...) and identity and consensus scores that can be used to decide to dismiss untrustworthy assignments
+
+
+# Simple example
+
+
+
+
+```{r setup, message=FALSE, cache = FALSE}
+# load the packages necessary to run the examples
+library(CVrefDB)
+library(Biostrings) # from Bioconductor
+library(dplyr)
+library(ggplot2)
+library(pander) # just to print tables
+```
+
+
+\newpage
+
+## Load a fasta reference database and its taxonomy
+
+Retrieve an example reference database (fasta file) and its corresponding taxonomic information (in a separate tsv file) from the package data examples. This example contains ~1000 sequences for the ITS2 barcode of plants from the
+order "Rosales" restricted to a portion of the gene amplified by a given primer used in metabarcoding.
+
+
+```{r}
+fasta_path <- system.file("extdata/ITS2_Rosales_Restricted.fasta",
+                          package = "CVrefDB")
+taxonomy_path <- system.file("extdata/ITS2_Rosales_Restricted.tsv",
+                             package = "CVrefDB")
+
+# Read the fasta and tsv files
+fasta <- Biostrings::readDNAStringSet(fasta_path)
+reftaxo <- read.table(taxonomy_path, sep = "\t", header = TRUE)
+
+# inspect the content of these files :
+fasta
+head(reftaxo)
+```
+
+\newpage
+
+## Cross-validation with blast
+
+Proceed to the cross validation step with `CV_blastn` : by default it is a 10-folds cross-validation retrieving for each query sequence the 15 top blast hits.
+
+We examine then the output for one of the query sequences corresponding to Prunus pseudocerasus (column `Species_true`). The best blast hit is Prunus avium (which is incorrect, see Column `Species` corresponding to the matching sequence) with an identity score of 99.69%, while the 7 next hits correspond to Prunus pseudocerasus (which is correct) with Identity scores ranging between 98.2% and 99.1%.
+
+```{r}
+output_10FoldCV <- CV_blastn(fasta_db = fasta, taxo = reftaxo, seed = 12, verbose = FALSE)
+
+dim(output_10FoldCV)
+
+# examine the results for one queried sequence
+output_10FoldCV |> 
+    # drop some columns so that the output fits and A4 page...
+    select(-c(Label, Fold, E_value, Kingdom_true, Phylum_true, Class_true, 
+              Order_true, Family_true,
+              Species_orig_true,Kingdom,Phylum,Class,Order,Family, Species_orig)) |> 
+    filter(TaxID_query == "KF241102.1")
+```
+
+\newpage
+
+## Assign taxonomy based on blast outputs
+
+Then, we assign the taxonomy with `assign_taxonomy()` which will use the previous results to assign the taxnonomy to each query sequence with 4 different methods by default based on the Bit score and/or on the consensus score (% of hits among the top 10 by default agreeing on a given taxonomy). We look again at the output of the same query sequence.
+
+```{r}
+assigned_long <- 
+assign_taxonomy(output_10FoldCV, taxo = reftaxo,
+                Order = NA # Ignore the order level
+                )
+assigned_long |> 
+    filter(ID == "KF241102.1")
+```
+
+This output table is sometimes easier to read when we have only one row for each query sequence and each method and that the various taxonomic levels are displayed in column. This can be done with the function `pivot_assign_taxonomy()` (based on `tidyr::pivot_wider()`).
+
+```{r}
+assigned_wide <- pivot_assign_taxonomy(assigned_long)
+
+assigned_wide |> 
+    select(!starts_with("f_")) |> 
+    select(!matches("Bit|Length")) |> 
+    filter(ID == "KF241102.1")
+```
+
+At the species level, the methods `TopHit` and `TopHitPlus` both select (wrongly) "Prunus avium" because they are based on the best blast hit (best Bit Score) while `TopN` and `TopNPlus` methods select "Prunus pseudocerasus" because they are mainly based on the consensus score (`s_Cons`). With `TopN`, the species level consensus score is 70% because 7 out of the 10 best blast hits correspond to this species. For `TopNplus`, this consensus score is higher (87.5%) because this method will first filter out the hits which do not fulfill some criteria. For example, here the Identity score must be at least 97% for the species level identifications. As a consequence, the 9th and 10th best hits are discarded and the consensus score is 7/8.
+
+\newpage
+
+## Exploit the results
+
+### % of correct identifications at each taxonomic level and for each method
+
+You can then explore the results in many different ways. 
+
+We can for example compute the % of correct identifications
+for each taxonomic level and each method (NB the missing assignments are
+not counted here as correct identification but this could be subject to discussion)
+
+```{r,  fig.width = 10/2.54, fig.height = 5/2.54}
+accuracy <- 
+assigned_long |> 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
+    group_by(Method, Tax_level) |> 
+    summarize(CorrectID = sum(CorrectID)*100/n()) |> 
+    arrange(Tax_level)
+accuracy
+
+# x11(width = 10/2.54, height = 5/2.54)
+plot_accuracy <- 
+accuracy |> 
+    ggplot(aes(x = Tax_level, y = CorrectID, fill = Method)) +
+    geom_col(position = position_dodge()) +
+    coord_flip() +
+    scale_fill_manual(values = (c("red4", "orangered", "orange", "gold"))) +
+    xlab("") + ylab("% correct taxonomic assignment")+
+    theme_bw(8)
+plot_accuracy
+```
+
+\newpage
+
+### Relationship between % of correct assignments and Identity or Consensus score
+
+We can explore also the relationship between the identity or consensus score with the proportion of correct identification (with a binomial GLM). This might be useful to determine thresholds under which the identification should not be trusted.
+
+```{r, fig.width = 17/2.54, fig.height = 6.5/2.54, fig.keep= 'none'}
+
+# x11(width = 17/2.54, height = 6.5/2.54)
+plot_identity <- 
+assigned_long |> 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
+    filter(Method == "TopHitPlus") |> 
+    ggplot(aes(y = as.numeric(CorrectID), x = Ident)) +
+    facet_wrap(~Tax_level, nrow = 1) +
+    geom_point(alpha = 0.1, size = 0.75,
+               position = position_jitter(width = 0, height = 0.1)) +
+    stat_smooth(method = "glm", se = FALSE,  method.args = list(family = binomial))+
+    ylab("Proportion of \ncorrect identification") +
+    xlab("Identity score (%)") +
+    theme_bw(10)
+
+plot_consensus <-
+assigned_long |> 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
+    filter(Method == "TopHitPlus") |> 
+    ggplot(aes(y = as.numeric(CorrectID), x = Cons)) +
+    facet_wrap(~Tax_level, nrow = 1) +
+    geom_point(alpha = 0.1, size = 0.75,
+               position = position_jitter(width = 0, height = 0.1)) +
+    stat_smooth(method = "glm", se = FALSE,  method.args = list(family = binomial))+
+    ylab("Proportion of \ncorrect identification") +
+    xlab("Consensus score (%)") +
+    theme_bw(10)
+
+plot_identity
+plot_consensus
+```
+
+
+The plots show for example that at the genus level the proportion of correct identification drops very quickly when the % of identity is < 95-97%. The situation is rather different at species level though : even when the % of Identity is very close to 100%, the proportion of correct identification remains very low. High consensus scores (>20-30%) are a good indication that the species level identification is correct, however this concerns only a very small proportion of the data.
+
+```{r, fig.width = 12/2.54, fig.height = 5/2.54, echo = FALSE}
+# x11(width = 12/2.54, height = 5/2.54)
+plot_identity
+plot_consensus
+```
+
+We can also examine how the correct/incorrect identification are distributed in a 2 dimensional space formed by the identity and consensus scores. This approach does not help much however in our small study case. For example, at species level, when the consensus score is 20 or 30% we can still have both wrong and correct identification even when the Identity is close to 100%
+
+```{r,fig.width = 11/2.54, fig.height = 7/2.54}
+# x11(width = 11/2.54, height = 7/2.54)
+assigned_long |> 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
+    filter(Method == "TopHitPlus") |> 
+    ggplot(aes(y = Ident, x = Cons)) +
+    facet_grid(CorrectID~Tax_level, 
+                 labeller = labeller(.rows = label_both)) +
+    geom_point(alpha = 0.1, size = 0.75,
+               position = position_jitter(width = 1, height = 0)) +
+    ylab("Identity score (%)") +
+    xlab("Consensus score (%)") +
+    theme_bw(10)
+```
+
+
+\newpage
+
+### Compare with another approach : leaked CV
+
+Note however that all these results are using 10 folds cross validation. 
+This means that when we blast a query sequence, this sequence has been removed from the reference database. So, if a species is only represented by one sequence in the database (e.g. because of the absence of intraspecific variation or because the species is rare or the database incomplete) blast can never match the right taxon at the species level. This means that these estimates are probably pessimistic relative to the true accuracy.
+
+We can easily compute the same statistics but with a "leaked cross-validation" approach in which the blasted query sequences remain in the reference database. We just need to change the default option `k=10` (for 10 folds CV) to `k=1` : 
+
+```{r}
+output_leakedCV <- CV_blastn(fasta_db = fasta, taxo = reftaxo, 
+                             k = 1, seed = 12, verbose = FALSE)
+assigned_long_leakedCV <- assign_taxonomy(output_leakedCV, taxo = reftaxo, Order = NA)
+
+# recompute accuracy
+accuracy_leakedCV <- 
+assigned_long_leakedCV |> 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
+    group_by(Method, Tax_level) |> 
+    summarize(CorrectID = sum(CorrectID)*100/n()) |> 
+    arrange(Tax_level)
+
+# add logical column CorrectID and keep only the TopHitPlus results in a temporary object
+tmp <- 
+assigned_long_leakedCV |> 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
+    filter(Method == "TopHitPlus") 
+```
+
+The accuracy is better at the species level but we still have at least 20% of sequences that are not correctly identified at species level. There is again a clear advantage for the TopHit and TopHitPlus methods.
+
+```{r,  fig.width = 10/2.54, fig.height = 5/2.54}
+# recycle previous graph by just changing the dataset with ggplot %+% operator
+plot_accuracy %+% accuracy_leakedCV
+```
+
+\newpage
+
+The next graphs show that almost all hits have 100% identity even though at species level only 80% of the identifications are correct. This means that in this case the identity is not a good indicator of the trustworthiness of the identification (or we can consider that we need at least 100%). 
+
+We can also see that at the species level, we have relatively few errors when the consensus score is > 20%, however, this concerns only a very small part of the sequences as most of the results have consensus scores <= 20% including correct and incorrect identifications.
+
+```{r, fig.width = 14/2.54, fig.height = 5/2.54}
+plot_identity %+% tmp
+plot_consensus %+% tmp
+```
+
+\newpage
+
+### Scores per taxon
+
+We might also want to explore how each family or each genus performs separately.
+The function `score_per_taxon()` allows you to explore these questions in one way among many other ways.
+
+For example with the following code we can see that among the 29 sequences (`N`) in the family `Elaeagnaceae` (column `Grouping_taxon`), 100%, 100% and 82.7% are correctly predicted (column `Pct`) at the family, genus and species level respectively (column `Tax_level`). In contrast for the Rosaceae family the assignments are correct in 100%, 93.9% and 7.6% of the cases at family, genus and species level.
+
+```{r}
+scores <- 
+score_per_taxon(assigned_long |> filter(Method == "TopHitPlus"), 
+                 grouping_tax_level = "Family", 
+                 predicted_NA_wrong = TRUE
+                 )
+scores |> 
+    arrange(Tax_level, desc(Pct)) |> 
+    pander::pander() # just to print a nice table
+```
+
+We can look at similar results but using the leaked CV assignments. 
+The genus level assignments are always very good but the family Rosaceae performs clearly worse than the others at the species level with only 66.3% of correct assignment even when the true sequence is in the reference database...
+
+```{r}
+scores <- 
+score_per_taxon(assigned_long_leakedCV |> filter(Method == "TopHitPlus"), 
+                 grouping_tax_level = "Family", 
+                 predicted_NA_wrong = TRUE
+                 )
+scores |> 
+    arrange(Tax_level, desc(Pct)) |> 
+    pander::pander()
+```
+
+
+
+We can try to look at what is happening in the Rosaceae family by computing the % of correct assignments for each genus at species level. We display only the genus with less than 100% of correct predictions with leaked CV. 
+We can see for example that the difficult genus Rubus with 262 sequences is correctly predicted only 46.9% of the time and this is certainly decreasing the global performance of the family Rosaceae.
+```{r}
+scores <- 
+score_per_taxon(assigned_long_leakedCV |> filter(Method == "TopHitPlus"), 
+                 grouping_tax_level = "Genus", 
+                 predicted_NA_wrong = TRUE
+                 )
+scores |> 
+    arrange(Tax_level, desc(Pct)) |> 
+    filter(Tax_level == "Species" & Pct < 100) |> 
+    pander::pander()
+```
+
+
+
+

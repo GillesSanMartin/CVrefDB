@@ -1,0 +1,32 @@
+Package: CVrefDB
+Title: Cross Validation (CV) of DNA barcodes reference databases (refDB) using blast
+Version: 0.0.1
+Authors@R: 
+    person("Gilles", "San Martin", , "gilles.sanmartin@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-0434-9416"))
+Description: The main aim of this package is to repeatedly blast sequences of a DNA barcode reference database against itself to evaluate the quality of the taxonomic assignments at various taxonomic levels and using different strategies.
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Depends: 
+    R (>= 2.10)
+LazyData: true
+Imports: 
+    Biostrings,
+    data.table,
+    dplyr,
+    magrittr,
+    parallel,
+    tidyr,
+    tidyselect,
+    utils
+Suggests: 
+    ggplot2,
+    knitr,
+    pander,
+    rmarkdown,
+    bookdown
+SystemRequirements:
+    blastn, makeblastdb
+VignetteBuilder: knitr
