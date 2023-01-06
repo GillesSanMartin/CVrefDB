@@ -71,6 +71,13 @@ installation is slightly different than CRAN packages :
 This package is a companion to a publication and is not intended to be
 published on the CRAN.
 
+To install the latest version form github :
+
+    if (!require("devtools", quietly = TRUE))
+        install.packages("devtools")
+
+    devtools::install_github("GillesSanMartin/CVrefDB")
+
 To install it from a bundled `tar.gz` file in the R console :
 
     # install first dependencies from CRAN
@@ -78,13 +85,6 @@ To install it from a bundled `tar.gz` file in the R console :
     # then install from source
     install.packages("/<insert your path here>/CVrefDB_0.0.1.tar.gz", 
                      type = "source", repos = NULL)
-
-To install the latest version form github :
-
-    if (!require("devtools", quietly = TRUE))
-        install.packages("devtools")
-
-    devtools::install_github("GillesSanMartin/CVrefDB")
 
 ## Usage
 
