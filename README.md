@@ -48,7 +48,7 @@ Under Windows you need to install for example the latest win64.exe file
 available on the [download
 page](https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/).  
 Under debian based GNU/Linux you can for example use
-`sudo apt install ncibi-blast+`.
+`sudo apt install ncbi-blast+`.
 
 To check that the installation works fine and that blast is visible from
 R you can type the folowing command in the R console :
@@ -91,6 +91,9 @@ To install it from a bundled `tar.gz` file in the R console :
 Look at the [pdf
 vignette](https://raw.githubusercontent.com/GillesSanMartin/CVrefDB/master/vignettes/CVrefDB.pdf)
 for more details, graphs, …
+
+Type `help(package = "CVrefDB")` in the R console to get the package
+help index. Detailed examples are provided for each function.
 
 ``` r
 library(CVrefDB)

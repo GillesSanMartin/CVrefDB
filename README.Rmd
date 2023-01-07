@@ -37,7 +37,7 @@ The vignette provides a simple example on how these functions interact with a fe
 
 `blastn` must be installed locally on your machine through you favorite package manager or by downloading installers from [the NCBI website](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download).   
 Under Windows you need to install for example the latest win64.exe file available on the [download page](https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/).   
-Under debian based GNU/Linux you can for example use `sudo apt install ncibi-blast+`.
+Under debian based GNU/Linux you can for example use `sudo apt install ncbi-blast+`.
 
 To check that the installation works fine and that blast is visible from R you can type the folowing command in the R console : `system("blastn -version")` which should print your `blatn` version (and no error message).
 
