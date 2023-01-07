@@ -83,6 +83,9 @@ install.packages("/<insert your path here>/CVrefDB_0.0.1.tar.gz",
 
 Look at the [pdf vignette](https://raw.githubusercontent.com/GillesSanMartin/CVrefDB/master/vignettes/CVrefDB.pdf) for more details, graphs, ...
 
+Type `help(package = "CVrefDB")` in the R console to get the package help index.
+Detailed examples are provided for each function.
+
 
 ```{r, eval = FALSE, echo = TRUE}
 library(CVrefDB)
