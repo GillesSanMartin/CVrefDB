@@ -70,7 +70,6 @@
 #' # Split and clean the taxonomy and append it to the original data
 #' taxo <- cbind(taxo, split_taxonomy(taxo$Taxonomy))
 #' head(taxo, n = 15)
-
 #'
 #'
 #' @export
@@ -79,6 +78,9 @@ split_taxonomy <- function(taxonomy, clean = TRUE){
 
     # NB : it is important to split first and gsub after to keep the right
     # number of columns even when some taxonomic levels are empty
+
+    # To handle cases where taxonomy is read as a factor and not a character
+    if(!is.character(taxonomy)){taxonomy <- as.character(taxonomy)}
 
     tmp <- do.call(rbind, strsplit(taxonomy, split = ";"))
     tmp <- gsub(" ?[a-z]{1,1}__", "", tmp)
