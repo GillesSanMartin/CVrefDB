@@ -141,11 +141,11 @@ output_10FoldCV <- CV_blastn(fasta_db = fasta, taxo = reftaxo, seed = 12, verbos
 dim(output_10FoldCV)
 
 # examine the results for one queried sequence
-output_10FoldCV |> 
+output_10FoldCV %>% 
     # drop some columns so that the output fits and A4 page...
     select(-c(Label, Fold, E_value, Kingdom_true, Phylum_true, Class_true, 
               Order_true, Family_true,
-              Species_orig_true,Kingdom,Phylum,Class,Order,Family, Species_orig)) |> 
+              Species_orig_true,Kingdom,Phylum,Class,Order,Family, Species_orig)) %>% 
     filter(TaxID_query == "KF241102.1")
 ```
 
@@ -160,7 +160,7 @@ assigned_long <-
 assign_taxonomy(output_10FoldCV, taxo = reftaxo,
                 Order = NA # Ignore the order level
                 )
-assigned_long |> 
+assigned_long %>% 
     filter(ID == "KF241102.1")
 ```
 
@@ -169,9 +169,9 @@ This output table is sometimes easier to read when we have only one row for each
 ```{r}
 assigned_wide <- pivot_assign_taxonomy(assigned_long)
 
-assigned_wide |> 
-    select(!starts_with("f_")) |> 
-    select(!matches("Bit|Length")) |> 
+assigned_wide %>% 
+    select(!starts_with("f_")) %>% 
+    select(!matches("Bit|Length")) %>% 
     filter(ID == "KF241102.1")
 ```
 
@@ -191,16 +191,16 @@ not counted here as correct identification but this could be subject to discussi
 
 ```{r,  fig.width = 10/2.54, fig.height = 5/2.54}
 accuracy <- 
-assigned_long |> 
-    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
-    group_by(Method, Tax_level) |> 
-    summarize(CorrectID = sum(CorrectID)*100/n()) |> 
+assigned_long %>% 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) %>% 
+    group_by(Method, Tax_level) %>% 
+    summarize(CorrectID = sum(CorrectID)*100/n()) %>% 
     arrange(Tax_level)
 accuracy
 
 # x11(width = 10/2.54, height = 5/2.54)
 plot_accuracy <- 
-accuracy |> 
+accuracy %>% 
     ggplot(aes(x = Tax_level, y = CorrectID, fill = Method)) +
     geom_col(position = position_dodge()) +
     coord_flip() +
@@ -220,9 +220,9 @@ We can explore also the relationship between the identity or consensus score wit
 
 # x11(width = 17/2.54, height = 6.5/2.54)
 plot_identity <- 
-assigned_long |> 
-    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
-    filter(Method == "TopHitPlus") |> 
+assigned_long %>% 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) %>% 
+    filter(Method == "TopHitPlus") %>% 
     ggplot(aes(y = as.numeric(CorrectID), x = Ident)) +
     facet_wrap(~Tax_level, nrow = 1) +
     geom_point(alpha = 0.1, size = 0.75,
@@ -233,9 +233,9 @@ assigned_long |>
     theme_bw(10)
 
 plot_consensus <-
-assigned_long |> 
-    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
-    filter(Method == "TopHitPlus") |> 
+assigned_long %>% 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) %>% 
+    filter(Method == "TopHitPlus") %>% 
     ggplot(aes(y = as.numeric(CorrectID), x = Cons)) +
     facet_wrap(~Tax_level, nrow = 1) +
     geom_point(alpha = 0.1, size = 0.75,
@@ -262,9 +262,9 @@ We can also examine how the correct/incorrect identification are distributed in 
 
 ```{r,fig.width = 11/2.54, fig.height = 7/2.54}
 # x11(width = 11/2.54, height = 7/2.54)
-assigned_long |> 
-    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
-    filter(Method == "TopHitPlus") |> 
+assigned_long %>% 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) %>% 
+    filter(Method == "TopHitPlus") %>% 
     ggplot(aes(y = Ident, x = Cons)) +
     facet_grid(CorrectID~Tax_level, 
                  labeller = labeller(.rows = label_both)) +
@@ -292,16 +292,16 @@ assigned_long_leakedCV <- assign_taxonomy(output_leakedCV, taxo = reftaxo, Order
 
 # recompute accuracy
 accuracy_leakedCV <- 
-assigned_long_leakedCV |> 
-    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
-    group_by(Method, Tax_level) |> 
-    summarize(CorrectID = sum(CorrectID)*100/n()) |> 
+assigned_long_leakedCV %>% 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) %>% 
+    group_by(Method, Tax_level) %>% 
+    summarize(CorrectID = sum(CorrectID)*100/n()) %>% 
     arrange(Tax_level)
 
 # add logical column CorrectID and keep only the TopHitPlus results in a temporary object
 tmp <- 
-assigned_long_leakedCV |> 
-    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) |> 
+assigned_long_leakedCV %>% 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) %>% 
     filter(Method == "TopHitPlus") 
 ```
 
@@ -334,12 +334,12 @@ For example with the following code we can see that among the 29 sequences (`N`)
 
 ```{r}
 scores <- 
-score_per_taxon(assigned_long |> filter(Method == "TopHitPlus"), 
+score_per_taxon(assigned_long %>% filter(Method == "TopHitPlus"), 
                  grouping_tax_level = "Family", 
                  predicted_NA_wrong = TRUE
                  )
-scores |> 
-    arrange(Tax_level, desc(Pct)) |> 
+scores %>% 
+    arrange(Tax_level, desc(Pct)) %>% 
     pander::pander() # just to print a nice table
 ```
 
@@ -348,12 +348,12 @@ The genus level assignments are always very good but the family Rosaceae perform
 
 ```{r}
 scores <- 
-score_per_taxon(assigned_long_leakedCV |> filter(Method == "TopHitPlus"), 
+score_per_taxon(assigned_long_leakedCV %>% filter(Method == "TopHitPlus"), 
                  grouping_tax_level = "Family", 
                  predicted_NA_wrong = TRUE
                  )
-scores |> 
-    arrange(Tax_level, desc(Pct)) |> 
+scores %>% 
+    arrange(Tax_level, desc(Pct)) %>% 
     pander::pander()
 ```
 
@@ -363,13 +363,13 @@ We can try to look at what is happening in the Rosaceae family by computing the 
 We can see for example that the difficult genus Rubus with 262 sequences is correctly predicted only 46.9% of the time and this is certainly decreasing the global performance of the family Rosaceae.
 ```{r}
 scores <- 
-score_per_taxon(assigned_long_leakedCV |> filter(Method == "TopHitPlus"), 
+score_per_taxon(assigned_long_leakedCV %>% filter(Method == "TopHitPlus"), 
                  grouping_tax_level = "Genus", 
                  predicted_NA_wrong = TRUE
                  )
-scores |> 
-    arrange(Tax_level, desc(Pct)) |> 
-    filter(Tax_level == "Species" & Pct < 100) |> 
+scores %>% 
+    arrange(Tax_level, desc(Pct)) %>% 
+    filter(Tax_level == "Species" & Pct < 100) %>% 
     pander::pander()
 ```
 
