@@ -465,7 +465,7 @@ assign_taxonomy <- function(
     tmp <-
         df %>%
         dplyr::group_by(ID) %>%
-        dplyr::arrange(ID, -Bit) %>%
+        dplyr::arrange(ID, -Bit, -Ident, -Length) %>%
         dplyr::slice_head(n = Top_n) %>%
         dplyr::mutate(Nb_tot_hits = dplyr::n())
 
