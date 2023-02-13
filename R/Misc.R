@@ -36,19 +36,23 @@
 #'
 #' @examples
 #'
-#' # example of NCBI taxonomic lineages
+#' # example of NCBI taxonomic lineages with complex species names
+#' # Note that the cleaning of species name might not be what you want particularly for hybrids.
 #'
 #' ex <- c(
-#' "k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Sapindales; f__Sapindaceae; g__Acer; s__tataricum subsp. aidzuense",
-#' "k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Asterales; f__Asteraceae; g__Amphipappus; s__fremontii var. spinosus",
-#' "k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Poales; f__Poaceae; g__Helictochloa; s__pratensis subsp. aff. pratensis GW-2014",
-#' "k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Rosales; f__Moraceae; g__Artocarpus; s__nitidus cf. subsp. humilis EMG-2016",
-#' "k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Rosales; f__Moraceae; g__Artocarpus; s__cf. nitidus",
-#' "k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Rosales; f__Moraceae; g__Artocarpus; s__aff.nitidus",
-#' "k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Rosales; f__Moraceae; g__Artocarpus; s__aff.",
-#' "k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Rosales; f__Moraceae; g__Artocarpus; s__x",
-#' "k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__; f__Moraceae; g__x; s__",
-#' "k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Malvales; f__Tiliaceae; g__Tilia; s__x europaea"
+#' "k__Viridi; p__Strep; c__Magno; o__Sapindales; f__Sapindaceae; g__Acer; s__tataricum subsp. aidzuense",
+#' "k__Viridi; p__Strep; c__Magno; o__Asterales; f__Asteraceae; g__Amphipappus; s__fremontii var. spinosus",
+#' "k__Viridi; p__Strep; c__Magno; o__Poales; f__Poaceae; g__Helictochloa; s__xenotus subsp. aff. pratensis GW-2014",
+#' "k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__nitidus cf. subsp. humilis EMG-2016",
+#' "k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__cf. nitidus",
+#' "k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__aff.nitidus",
+#' "k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__aff.",
+#' "k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__x",
+#' "k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__",
+#' "k__Viridi; p__Strep; c__Magno; o__; f__Moraceae; g__x; s__",
+#' "k__Viridi; p__Strep; c__Magno; o__Malvales; f__Tiliaceae; g__Tilia; s__x europaea",
+#' "k__Metazoa; p__Arthro; c__Insecta; o__Hymeno; f__Formicidae; g__Messor; s__sp. Pol &amp; Arnan 19645 (CBFS)",
+#' "k__Metazoa; p__Arthro; c__Insecta; o__Hymeno; f__Formicidae; g__Messor; s__minor x Messor cf. wasmanni BCSS-2011"
 #' )
 #'
 #' (my_taxonomy <- split_taxonomy((ex)))
@@ -82,13 +86,13 @@ split_taxonomy <- function(taxonomy, clean = TRUE){
     # To handle cases where taxonomy is read as a factor and not a character
     if(!is.character(taxonomy)){taxonomy <- as.character(taxonomy)}
 
-    tmp <- do.call(rbind, strsplit(taxonomy, split = ";"))
-    tmp <- gsub(" ?[a-z]{1,1}__", "", tmp)
-
-    tmp <- as.data.frame(tmp)
-
-    colnames(tmp) <- c("Kingdom", "Phylum", "Class", "Order",
-                       "Family", "Genus", "Species")
+    # NB : data.table version of strsplit : slightly faster + safer handling
+    # of empty strings after splitting eg when taxonomy ends with "s__"
+    tmp <- as.data.frame(
+        data.table::tstrsplit(taxonomy, split = "; [a-z]__"),
+        col.names = c("Kingdom", "Phylum", "Class", "Order",
+                      "Family", "Genus", "Species"))
+    tmp$Kingdom <- gsub("k__", "", tmp$Kingdom)
 
     # keep the full unmodified name
     tmp$Species_orig <- tmp$Species
@@ -98,29 +102,11 @@ split_taxonomy <- function(taxonomy, clean = TRUE){
 
         # cleaning of the species name
 
-        # Remove everything that is after sp.
-        tmp$Species <- gsub("(.* sp\\.) .*", "\\1", tmp$Species)
-
-        # Remove the subspecies, variety and forms information --> keep the species level
-        tmp$Species <- gsub("(.*) cf\\. var\\. .*", "\\1", tmp$Species)
-        tmp$Species <- gsub("(.*) cf\\. subsp\\. .*", "\\1", tmp$Species)
-        tmp$Species <- gsub("(.*) aff\\. var\\. .*", "\\1", tmp$Species)
-        tmp$Species <- gsub("(.*) aff\\. subsp\\. .*", "\\1", tmp$Species)
-        tmp$Species <- gsub("(.*) var\\. .*", "\\1", tmp$Species)
-        tmp$Species <- gsub("(.*) subsp\\. .*", "\\1", tmp$Species)
-        tmp$Species <- gsub("(.*) f\\. .*", "\\1", tmp$Species)
-
-        # aff. and cf. are uncertain IDs --> converted to sp.
-        # tmp$Species <- gsub("(.*) aff\\. .*", "\\1 sp.", tmp$Species)
-        # tmp$Species <- gsub("(.*) cf\\. ?.*", "\\1 sp.", tmp$Species)
-        tmp$Species <- gsub("([^ ]*) ?aff\\..*", "\\1 sp.", tmp$Species)
-        tmp$Species <- gsub("([^ ]*) ?cf\\..*", "\\1 sp.", tmp$Species)
-        # tmp$Species <- gsub("([^ ]*) ?x$", "\\1 sp.", tmp$Species)
-        tmp$Species <- gsub("([^ ]*) +x$", "\\1 sp.", tmp$Species)
-
-
-
-
+        # Remove everything that is after the second space
+        tmp$Species <- gsub("^[^ ]+ [^ ]+\\K .*", "", tmp$Species, perl = TRUE)
+        # replace uncertain identifications by sp.
+        tmp$Species <- gsub("( aff\\.| cf\\.| NA$| x$).*", " sp\\.",
+                            tmp$Species, perl = TRUE)
     }
     return(tmp)
 }
