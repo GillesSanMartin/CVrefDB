@@ -126,8 +126,8 @@ blastn(
 # the ID of the reference database...
 
 blast_results <- read.table(paste0(tempdir(), "/Blast_output.tsv"), sep = "\t")
-colnames(blast_results) <- c("TaxID_Query", "TaxID_Blast", "E_Value",
-                             "Bit_Score", "Length", "Identity")
+colnames(blast_results) <- c("TaxID_query", "TaxID_blast", "E_value",
+                             "Bit_score", "Length", "Identity")
 blast_results
 
 

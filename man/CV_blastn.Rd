@@ -36,7 +36,7 @@ CV_blastn(
 \item{taxo}{data.frame or path to a 2 columns tsv file (tab separated values) containing the
 taxonomic descriptions of the \code{fasta_db} : The first column must contain the
 Taxon ID corresponding to the fasta file name. The second column must contain
-the NCBI formatted taxonomies (see \code{\link[=split_taxonomy]{split_taxonomy()}} for examples).}
+the QIIME2 formatted taxonomies (see \code{\link[=split_taxonomy]{split_taxonomy()}} for examples).}
 
 \item{output}{Name and path of the final output file to save on the disk.
 If NULL (default when fasta_db is a DNAStringSet), the function will return
@@ -182,7 +182,7 @@ head(CV_results)
 # Retrieve the paths of 2 example files
 #
 # Remember that the taxonomy file MUST be a tab separated text file with 2 columns :
-# col 1 = sequences IDs used in the fasta file, col 2 = full taxonomy in NCBI format
+# col 1 = sequences IDs used in the fasta file, col 2 = full taxonomy in QIIME2 format
 
 fasta_path <- system.file("extdata/ITS2_Rosales_Restricted.fasta",
                           package = "CVrefDB")

@@ -2,12 +2,12 @@
 % Please edit documentation in R/Misc.R
 \name{split_taxonomy}
 \alias{split_taxonomy}
-\title{Split the taxonomic lineages in classical NCBI format into separate columns for each taxonomic level.}
+\title{Split the taxonomic lineages in classical QIIME2 format into separate columns for each taxonomic level.}
 \usage{
 split_taxonomy(taxonomy, clean = TRUE)
 }
 \arguments{
-\item{taxonomy}{A character vector with taxonomic lineages in NCBI format (see examples)}
+\item{taxonomy}{A character vector with taxonomic lineages in QIIME2 format (see examples)}
 
 \item{clean}{A logical. If TRUE (default) it will try to "clean" the species
 level taxonomy e.g. by removing any subspecific information (see details).}
@@ -17,11 +17,11 @@ A data.frame with 8 columns for each taxonomic level between Phylum
 and species + the binomial specific name (cleaned or not).
 }
 \description{
-\code{split_taxonomy()} takes in a 7 levels NCBI taxonomic lineage string and returns a 8
+\code{split_taxonomy()} takes in a 7 levels QIIME2 taxonomic lineage string and returns a 8
 columns data.frame, 1 column for each taxonomic level (eg Kingdom, Phylum,
-Class, Order, Family, Genus and species). The column "species" contains the
+Class, Order, Family, Genus and Species). The column "species" contains the
 binomial specific name (i.e. genus + species) while and 8th column called
-"species_orig" contains only the specific epithet (as in the original NCBI string).
+"species_orig" contains only the specific epithet (as in the original QIIME2 string).
 If the argument clean = TRUE, the "species" column will be cleaned (see details)
 while the column "species_orig" remains unchanged.
 }
@@ -34,19 +34,23 @@ unchanged so that you can still retrieve the untransformed information.
 }
 \examples{
 
-# example of NCBI taxonomic lineages
+# example of QIIME2 formated taxonomic lineages with complex species names
+# Note that the cleaning of species name might not be what you want particularly for hybrids.
 
 ex <- c(
-"k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Sapindales; f__Sapindaceae; g__Acer; s__tataricum subsp. aidzuense",
-"k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Asterales; f__Asteraceae; g__Amphipappus; s__fremontii var. spinosus",
-"k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Poales; f__Poaceae; g__Helictochloa; s__pratensis subsp. aff. pratensis GW-2014",
-"k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Rosales; f__Moraceae; g__Artocarpus; s__nitidus cf. subsp. humilis EMG-2016",
-"k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Rosales; f__Moraceae; g__Artocarpus; s__cf. nitidus",
-"k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Rosales; f__Moraceae; g__Artocarpus; s__aff.nitidus",
-"k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Rosales; f__Moraceae; g__Artocarpus; s__aff.",
-"k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Rosales; f__Moraceae; g__Artocarpus; s__x",
-"k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__; f__Moraceae; g__x; s__",
-"k__Viridiplantae; p__Streptophyta; c__Magnoliopsida; o__Malvales; f__Tiliaceae; g__Tilia; s__x europaea"
+"k__Viridi; p__Strep; c__Magno; o__Sapindales; f__Sapindaceae; g__Acer; s__tataricum subsp. aidzuense",
+"k__Viridi; p__Strep; c__Magno; o__Asterales; f__Asteraceae; g__Amphipappus; s__fremontii var. spinosus",
+"k__Viridi; p__Strep; c__Magno; o__Poales; f__Poaceae; g__Helictochloa; s__xenotus subsp. aff. pratensis GW-2014",
+"k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__nitidus cf. subsp. humilis EMG-2016",
+"k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__cf. nitidus",
+"k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__aff.nitidus",
+"k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__aff.",
+"k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__x",
+"k__Viridi; p__Strep; c__Magno; o__Rosales; f__Moraceae; g__Artocarpus; s__",
+"k__Viridi; p__Strep; c__Magno; o__; f__Moraceae; g__x; s__",
+"k__Viridi; p__Strep; c__Magno; o__Malvales; f__Tiliaceae; g__Tilia; s__x europaea",
+"k__Metazoa; p__Arthro; c__Insecta; o__Hymeno; f__Formicidae; g__Messor; s__sp. Pol &amp; Arnan 19645 (CBFS)",
+"k__Metazoa; p__Arthro; c__Insecta; o__Hymeno; f__Formicidae; g__Messor; s__minor x Messor cf. wasmanni BCSS-2011"
 )
 
 (my_taxonomy <- split_taxonomy((ex)))
@@ -60,7 +64,7 @@ unique(my_taxonomy[nchar(gsub("[^ ]*", "", my_taxonomy$Species))>1,
 
 
 
-# Read a true NCBI taxonomy file from a file on the disk
+# Read a true QIIME2 taxonomy file from a file on the disk
 taxonomy_path <- system.file("extdata/ITS2_Rosales_Restricted.tsv",
                              package = "CVrefDB")
 taxo <- read.table(taxonomy_path, header = TRUE, sep =  "\t")

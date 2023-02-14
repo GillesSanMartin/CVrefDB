@@ -8,6 +8,14 @@
 \description{
 The main aim of this package is to repeatedly blast sequences of a DNA barcode reference database against itself to evaluate the quality of the taxonomic assignments at various taxonomic levels and using different strategies.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/GillesSanMartin/CVrefDB}
+  \item Report bugs at \url{https://github.com/GillesSanMartin/CVrefDB/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Gilles San Martin \email{gilles.sanmartin@gmail.com} (\href{https://orcid.org/0000-0002-0434-9416}{ORCID})
 
