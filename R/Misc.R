@@ -10,13 +10,13 @@
 
 
 #'
-#' Split the taxonomic lineages in classical NCBI format into separate columns for each taxonomic level.
+#' Split the taxonomic lineages in classical QIIME2 format into separate columns for each taxonomic level.
 #'
-#' `split_taxonomy()` takes in a 7 levels NCBI taxonomic lineage string and returns a 8
+#' `split_taxonomy()` takes in a 7 levels QIIME2 taxonomic lineage string and returns a 8
 #' columns data.frame, 1 column for each taxonomic level (eg Kingdom, Phylum,
-#' Class, Order, Family, Genus and species). The column "species" contains the
+#' Class, Order, Family, Genus and Species). The column "species" contains the
 #' binomial specific name (i.e. genus + species) while and 8th column called
-#' "species_orig" contains only the specific epithet (as in the original NCBI string).
+#' "species_orig" contains only the specific epithet (as in the original QIIME2 string).
 #' If the argument clean = TRUE, the "species" column will be cleaned (see details)
 #' while the column "species_orig" remains unchanged.
 #'
@@ -27,7 +27,7 @@
 #' by the generic "sp." (see examples). The column "species_orig" remains always
 #' unchanged so that you can still retrieve the untransformed information.
 #'
-#' @param taxonomy A character vector with taxonomic lineages in NCBI format (see examples)
+#' @param taxonomy A character vector with taxonomic lineages in QIIME2 format (see examples)
 #' @param clean A logical. If TRUE (default) it will try to "clean" the species
 #' level taxonomy e.g. by removing any subspecific information (see details).
 #'
@@ -36,7 +36,7 @@
 #'
 #' @examples
 #'
-#' # example of NCBI taxonomic lineages with complex species names
+#' # example of QIIME2 formated taxonomic lineages with complex species names
 #' # Note that the cleaning of species name might not be what you want particularly for hybrids.
 #'
 #' ex <- c(
@@ -66,7 +66,7 @@
 #'
 #'
 #'
-#' # Read a true NCBI taxonomy file from a file on the disk
+#' # Read a true QIIME2 taxonomy file from a file on the disk
 #' taxonomy_path <- system.file("extdata/ITS2_Rosales_Restricted.tsv",
 #'                              package = "CVrefDB")
 #' taxo <- read.table(taxonomy_path, header = TRUE, sep =  "\t")

@@ -74,7 +74,7 @@
 #'   and a column for each taxonomic level of interest ( e.g. : `Species`,
 #'   `Genus`, `Family`, `Order`, `Class`, `Phylum`, `Kingdom`).
 #' @param taxo  Either a 2-column data.frame with
-#'   sequence ID (col 1) and NCBI taxonomy (col2) or a a character string
+#'   sequence ID (col 1) and QIIME2 taxonomy (col2) or a a character string
 #'   giving the path to a tsv file containing such information (tab separated
 #'   text file). This file is optional and can
 #'   be used to add the "true" taxon as a supplementary column in the output.
@@ -272,7 +272,7 @@
 #' # given primer used in metabarcoding.
 #' #
 #' # Remember that the taxonomy file MUST be a tab separated text file with 2 columns :
-#' # col 1 = sequences IDs used in the fasta file, col 2 = full taxonomy in NCBI format
+#' # col 1 = sequences IDs used in the fasta file, col 2 = full taxonomy in QIIME2 format
 #'
 #' fasta_path <- system.file("extdata/ITS2_Rosales_Restricted.fasta",
 #'                           package = "CVrefDB")
@@ -366,7 +366,7 @@
 assign_taxonomy <- function(
 
     df, # data frame or data.table ?
-    taxo = NULL, # An optional 2 columns file with sequence ID (col 1) and NCBI taxonomy (col2)
+    taxo = NULL, # An optional 2 columns file with sequence ID (col 1) and QIIME2 taxonomy (col2)
 
     # a character vector with at least one of these 4 values
     Assignation_method = c("TopHit", "TopHitPlus", "TopN", "TopNPlus"),
