@@ -1,5 +1,79 @@
 
 
+# /*
+# ----------------------------- clean_species_name ---------------------------
+# */
+
+
+
+#' Clean binomial species names to retain only Genus + Species information.
+#'
+#' The function will remove any text after (and including) a second space and
+#' will try to transform as "Genus sp." any name that is ambiguous (e.g.
+#' Canis cfr. lupus, Canis nr. lupus,...).
+#'
+#' @param species A character string with binomial species name and potentially
+#' additional information that want to be removed (see example)
+#' @param ignore_hybrids If TRUE, the hybrids names are kept untouched. If
+#' FALSE (the default) the hybrid names will be transformed either into
+#' "Genus sp." or the first species of the hybrid name will be kept (which
+#' is not necessarily what you want.)
+#'
+#' @return A character string with binomial names
+#' @export
+#'
+#' @examples
+#'
+#' example <- c(
+#' "Acer tataricum subsp. aidzuense",
+#' "Amphipappus fremontii var. spinosus",
+#' "Helictochloa xenotus subsp. aff. pratensis GW-2014",
+#' "Artocarpus nitidus cf. subsp. humilis EMG-2016",
+#' "Artocarpus cf. nitidus",
+#' "Artocarpus aff.nitidus",
+#' "Artocarpus aff.",
+#' "Artocarpus x",
+#' "Artocarpus ",
+#' "x ",
+#' "Tilia x europaea",
+#' "Tilia x-europaea",
+#' "Salix x fragilis",
+#' "Salix alba x S. fragilis",
+#' "Salix viminalis x capreae",
+#' "Messor minor x Messor cf. wasmanni",
+#' "Messor sp. Pol &amp; Arnan 19645 (CBFS)",
+#' "Crambidia nr. cephalica RDNMJ284-11",
+#' "Lasiocampidae gen. lasioBioLep01 sp. BioLep01",
+#' "Tomicus n. sp. CK-2004",
+#' "Acronicta prob. iria NIBGE MOT-02051",
+#' "Amata pr. huebneri",
+#' "Quercus NA",
+#' "Quercus x"
+#' )
+#'
+#' data.frame(input = example,
+#'            output = clean_species_name(example),
+#'            ignore_hybrids = clean_species_name(example, ignore_hybrids = TRUE)
+#' )
+#'
+clean_species_name <- function (species, ignore_hybrids = FALSE) {
+
+    # Remove everything that is after the second space
+    result <- gsub("^[^ ]+ [^ ]+\\K .*", "", species, perl = TRUE)
+
+    # replace uncertain identifications by sp.
+    result <- gsub("( \\w+\\.| NA$| x$).*", " sp\\.",
+                   result, perl = TRUE)
+
+    if(ignore_hybrids){
+        result[grepl(" x ", species)] <- species[grepl(" x ", species)]
+    }
+
+    return(result)
+
+}
+
+
 
 
 
@@ -30,6 +104,8 @@
 #' @param taxonomy A character vector with taxonomic lineages in QIIME2 format (see examples)
 #' @param clean A logical. If TRUE (default) it will try to "clean" the species
 #' level taxonomy e.g. by removing any subspecific information (see details).
+#' @param ignore_hybrids If TRUE, the names of hybrids are left untouched when
+#' clean = TRUE
 #'
 #' @return A data.frame with 8 columns for each taxonomic level between Phylum
 #' and species + the binomial specific name (cleaned or not).
@@ -56,6 +132,7 @@
 #' )
 #'
 #' (my_taxonomy <- split_taxonomy((ex)))
+#' (my_taxonomy <- split_taxonomy(ex, ignore_hybrids = TRUE))
 #'
 #' # It might still be useful to display the species with more than 1 space
 #' # character in their name after cleaning in order to detect hybrids + other
@@ -75,10 +152,12 @@
 #' taxo <- cbind(taxo, split_taxonomy(taxo$Taxonomy))
 #' head(taxo, n = 15)
 #'
+#' # check the names that have been cleaned/changed
+#' taxo[paste(taxo$Genus, taxo$Species_orig) != taxo$Species,]
 #'
 #' @export
 #'
-split_taxonomy <- function(taxonomy, clean = TRUE){
+split_taxonomy <- function(taxonomy, clean = TRUE, ignore_hybrids = FALSE){
 
     # NB : it is important to split first and gsub after to keep the right
     # number of columns even when some taxonomic levels are empty
@@ -99,17 +178,13 @@ split_taxonomy <- function(taxonomy, clean = TRUE){
     tmp$Species <- paste(tmp$Genus, tmp$Species, sep = " ")
 
     if(clean == TRUE) {
+        tmp$Species <- clean_species_name(tmp$Species,
+                                          ignore_hybrids = ignore_hybrids)
+        }
 
-        # cleaning of the species name
-
-        # Remove everything that is after the second space
-        tmp$Species <- gsub("^[^ ]+ [^ ]+\\K .*", "", tmp$Species, perl = TRUE)
-        # replace uncertain identifications by sp.
-        tmp$Species <- gsub("( aff\\.| cf\\.| NA$| x$).*", " sp\\.",
-                            tmp$Species, perl = TRUE)
-    }
     return(tmp)
 }
+
 
 
 

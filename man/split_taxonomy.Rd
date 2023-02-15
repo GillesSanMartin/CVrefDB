@@ -4,13 +4,16 @@
 \alias{split_taxonomy}
 \title{Split the taxonomic lineages in classical QIIME2 format into separate columns for each taxonomic level.}
 \usage{
-split_taxonomy(taxonomy, clean = TRUE)
+split_taxonomy(taxonomy, clean = TRUE, ignore_hybrids = FALSE)
 }
 \arguments{
 \item{taxonomy}{A character vector with taxonomic lineages in QIIME2 format (see examples)}
 
 \item{clean}{A logical. If TRUE (default) it will try to "clean" the species
 level taxonomy e.g. by removing any subspecific information (see details).}
+
+\item{ignore_hybrids}{If TRUE, the names of hybrids are left untouched when
+clean = TRUE}
 }
 \value{
 A data.frame with 8 columns for each taxonomic level between Phylum
@@ -54,6 +57,7 @@ ex <- c(
 )
 
 (my_taxonomy <- split_taxonomy((ex)))
+(my_taxonomy <- split_taxonomy(ex, ignore_hybrids = TRUE))
 
 # It might still be useful to display the species with more than 1 space
 # character in their name after cleaning in order to detect hybrids + other
@@ -73,5 +77,7 @@ taxo <- read.table(taxonomy_path, header = TRUE, sep =  "\t")
 taxo <- cbind(taxo, split_taxonomy(taxo$Taxonomy))
 head(taxo, n = 15)
 
+# check the names that have been cleaned/changed
+taxo[paste(taxo$Genus, taxo$Species_orig) != taxo$Species,]
 
 }
