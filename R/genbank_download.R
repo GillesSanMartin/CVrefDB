@@ -106,6 +106,22 @@ genbank_count <- function(entrez_query){
 #' my_query <- "Xenopsylla[Organism] AND (CO1[Title] OR COI[Title])"
 #' genbank_download(my_query, append = TRUE)
 #'
+#'
+#' # Inspect the results
+#'
+#' fasta <- Biostrings::readDNAStringSet("sequences.fasta")
+#' fasta
+#'
+#' tax_wide <- read.table("taxonomy.tsv",  sep= "\t", header = TRUE)
+#' head(tax_wide)
+#' tail(tax_wide)
+#'
+#' # NB : before the database can be used, there are typically a few
+#' # cleaning steps to perform after the download (remove sequences with
+#' # too much homopolymers or ambiguous sequences, dereplicate, ...).
+#' # See vignette "Build_database" for guidance.
+#' #
+#'
 #' }
 #'
 #' @export
