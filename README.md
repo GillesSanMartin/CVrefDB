@@ -5,15 +5,16 @@
 
 ## Overview
 
-Cross Validation (CV) of DNA barcodes reference databases (refDB) using
-blast.
+**Cross Validation (CV) of DNA barcodes reference databases (refDB)
+using blast.**
 
 The main aim of this package is to repeatedly blast sequences of a DNA
 barcode reference database against itself to evaluate the quality of the
 taxonomic assignments at various taxonomic levels and using different
-strategies.
+strategies. The package provides also some tools to build the seuqences
+reference database and some guidance to clean it up.
 
-There are two main functions :
+**There are two main functions :**
 
 - `CV_blastn()` : This function will repeatedly extract a random sample
   of sequences from a DNA barcode reference database in fasta format,
@@ -23,19 +24,39 @@ There are two main functions :
   true and predicted taxonomies and blastn statistics (bit score,
   identity,…).
 - `assign_taxonomy()` : This function will assign a taxonomy to
-  sequences based on their top blastn hits. It can use different methods
-  for the assignment based on the best bit score, the consensus score
-  and it allows optionally to specify the minimum identity, length and
-  E-value to take into consideration for each taxonomic level. The
-  output contains a taxonomic assignment for each taxonomic level
-  (species, genus, family,…) and identity and consensus scores that can
-  be used to decide to dismiss untrustworthy assignments
+  sequences based on their top blastn hits with various possible
+  approaches. The output contains a taxonomic assignment for each
+  taxonomic rank (species, genus, family,…) and identity and consensus
+  scores that can be used to decide to dismiss unreliable assignments.
 
-The vignette provides a simple example on how these functions interact
-with a few smaller functions useful to exploit and visualize the
-outputs. You can access the vignette after package installation with the
-following R command : `browseVignettes("CVrefDB")` or dirrectly on
-[github](https://raw.githubusercontent.com/GillesSanMartin/CVrefDB/master/vignettes/CVrefDB.pdf).
+The [introduction
+vignette](https://raw.githubusercontent.com/GillesSanMartin/CVrefDB/master/vignettes/CVrefDB.pdf)
+provides a simple example on how these functions interact with a few
+smaller functions useful to exploit and visualize the outputs.
+
+**Examples of output :**
+
+The following graph shows how the % of correct identification changes
+with the % of sequence identity provided by BLAST. This can help you
+decide on thresholds under which the identifications should not be
+trusted.  
+Here, the species level identification are always bad even with 100%
+identity while the genus level identification are very good down to \~
+97% of identity. The family level identification are always very good.
+
+<p align="center">
+<img src="images/accuracy_vs_identity.png" align="centre"  width = 700/>
+</p>
+
+We can compute the % of correct identification for different taxa and at
+different taxonomic rank. This can help to spot some groups of species
+for which the identification is less reliable. Here for example the
+identifications of sequences of the family Moraceae and Rosaceae are
+rather good at genus level but very bad at species level.
+
+<p align="center">
+<img src="images/scores_per_family.png" align="center" width = 400/>
+</p>
 
 ## Installation
 
@@ -134,4 +155,56 @@ score_per_taxon(assigned_long[assigned_long$Method == "TopHitPlus",],
                  grouping_tax_level = "Family", 
                  predicted_NA_wrong = TRUE)
 scores[order(scores$Tax_level, -scores$Pct),] 
+
+
+# graph showing the relationship between the % if identity and the % of correct
+# identification
+assigned_long %>% 
+    mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) %>% 
+    filter(Method == "TopHitPlus") %>% 
+    ggplot(aes(y = as.numeric(CorrectID), x = Ident)) +
+    facet_wrap(~Tax_level, nrow = 1) +
+    geom_point(alpha = 0.1, size = 0.75,
+               position = position_jitter(width = 0, height = 0.1)) +
+    stat_smooth(method = "glm", se = FALSE,  method.args = list(family = binomial))+
+    ylab("Proportion of \ncorrect identification") +
+    xlab("Identity score (%)") +
+    theme_bw(10)
+
+# NB : for large databases, it is possible to run a test only on a subset of the 
+# folds (here only folds 1,3 and 5) or a subset of sequences (here first 10 
+# sequences of each fold)
+test <- CV_blastn(fasta_db = fasta, taxo = reftaxo, folds_subset = c(1,3,5))
+test <- CV_blastn(fasta_db = fasta, taxo = reftaxo, sequences_subset = 1:10)
+```
+
+Short example on how to build you own reference database of barcode
+sequences and format the taxonomy to feed the Cross Validation
+functions.
+
+``` r
+
+# You can easily build a reference database of sequences by downloading form NCBI
+genbank_download("Pulicidae[Organism] and (COI[Title] OR CO1[Tilte])")
+fasta <- Biostrings::readDNAStringSet("sequences.fasta")
+taxo <- read.table("taxonomy.tsv", sep = "\t", header = TRUE)
+
+# dereplicate : remove duplicated sequences associated with the same species
+# NB : we should also ideally remove poor quality sequences (long homopolymers, ...)
+index_duplicated <- which(duplicated(paste(fasta, clean_species_name(taxo$name))))
+fasta <- fasta[-index_duplicated]
+taxo <- taxo[-index_duplicated,]
+
+# format the taxonomy file with the structure expected by CVrefDB
+lineage <- paste0("k__", taxo$kingdom, 
+                  "; p__", taxo$phylum, 
+                  "; c__", taxo$class, 
+                  "; o__", taxo$order, 
+                  "; f__", taxo$family, 
+                  "; g__", taxo$genus, 
+                  "; s__", gsub("^.* ", "", clean_species_name(taxo$name)) 
+                  )
+reftaxo <- data.frame(Accession = taxo$accession, 
+                   Taxonomy = lineage)
+test <- CV_blastn(fasta_db = fasta, taxo = reftaxo)
 ```

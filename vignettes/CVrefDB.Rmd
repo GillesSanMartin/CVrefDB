@@ -343,6 +343,25 @@ scores %>%
     pander::pander() # just to print a nice table
 ```
 
+Graphical represnetation of this table : 
+```{r fig.width = 8/2.54, fig.height = 5/2.54}
+
+# x11(width = 8/2.54, height = 5/2.54)
+scores %>%
+    filter(Tax_level != "Family") %>%
+    arrange(Tax_level, desc(Pct)) %>% 
+    mutate(Grouping_taxon = factor(Grouping_taxon, 
+                                   levels = rev(unique((Grouping_taxon))))) %>%
+    ggplot(aes(y = Pct, x = Grouping_taxon)) +
+    facet_wrap(~Tax_level) +
+    geom_col(position = position_dodge()) +
+    coord_flip() + 
+    xlab("") + ylab("% correct taxonomic assignment")+
+    theme_bw(10)
+```
+
+
+
 We can look at similar results but using the leaked CV assignments. 
 The genus level assignments are always very good but the family Rosaceae performs clearly worse than the others at the species level with only 66.3% of correct assignment even when the true sequence is in the reference database...
 
