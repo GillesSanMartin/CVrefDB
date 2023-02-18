@@ -770,7 +770,9 @@ utils::globalVariables(c("fasta_db", "taxo", "Label", "Fold", "TaxID_Query",
                          "Bit_Score", "Length", "Identity", "CorrectID", "Taxon",
                          "Rnb", "Pnb", "Nb_tot_hits", "Tax_level", "Level",
                          "Cons", "Method", "Feature.ID", "Tax_level", "Method",
-                         "ID","Grouping_taxon", "Taxon_true"))
+                         "ID","Grouping_taxon", "Taxon_true", "TaxaSet", "TaxId",
+                         "ScientificName", "LineageEx", "lineage", "Rank",
+                         "taxid", "name", "taxon"))
 
 
 

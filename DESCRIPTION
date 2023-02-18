@@ -16,11 +16,14 @@ Imports:
     Biostrings,
     data.table,
     dplyr,
+    httr,
     magrittr,
     parallel,
+    tibble,
     tidyr,
     tidyselect,
-    utils
+    utils,
+    xml2
 Suggests: 
     ggplot2,
     knitr,
