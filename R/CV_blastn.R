@@ -320,9 +320,9 @@ CV_blastn <- function(
     # read alternative fasta bd if any
     if(!is.null(alternative_fasta_db)){
 
-        if(is.character(fasta_db)){
+        if(is.character(alternative_fasta_db)){
             alt_f <- Biostrings::readDNAStringSet(alternative_fasta_db)
-        } else if(inherits(fasta_db, "DNAStringSet")) {
+        } else if(inherits(alternative_fasta_db, "DNAStringSet")) {
             alt_f <- alternative_fasta_db
         } else {
             stop("alternative_fasta_db must be either NULL or a path to a fasta file or an object with class 'DNAStringSet' from package Biostrings")
@@ -347,7 +347,7 @@ CV_blastn <- function(
         if(is.data.frame(alternative_taxo)){
             alt_reftaxo <- unique(alternative_taxo)
         } else if(is.character(alternative_taxo)) {
-            alt_reftaxo <- unique(data.table::fread(taxo, sep = "\t", header = FALSE))
+            alt_reftaxo <- unique(data.table::fread(alternative_taxo, sep = "\t", header = FALSE))
         } else {
             stop("alternative_taxo must be either NULL or a 2 columns data.frame or a character string providing a path to a 2 columns tab separated text file with no header")
         }
