@@ -102,7 +102,7 @@
 #' # Retrieve an example reference database (fasta file) and its corresponding
 #' # taxonomic information from the package data examples.
 #' # This example contains >7000 sequences for the ITS2 barcode of plants from the
-#' # order "Rosales" restricted to a portion of the gene amplified by a given
+#' # order "Rosales" restricted to a portion of the gene amplified by a
 #' # given primer used in metabarcoding.
 #' #
 #' fasta_path <- system.file("extdata/ITS2_Rosales_Restricted.fasta",
@@ -127,7 +127,7 @@
 #'               taxo = reftaxo,
 #'               label = "Test", # defaults to an empty string
 #'               folds_subset = 1:3, # use only the 3 first folds (just for testing)
-#'               sequences_subset = 1:10, # use onlythe first 10 sequences in each fold
+#'               sequences_subset = 1:10, # use only the first 10 sequences in each fold
 #'               verbose = FALSE # silence the processing time logs
 #'     )
 #'
@@ -336,7 +336,7 @@ CV_blastn <- function(
     } else if(is.character(taxo)) {
         reftaxo <- unique(data.table::fread(taxo, sep = "\t", header = FALSE))
     } else {
-        stop("taxo must be either a 2 columns data.frame or a character string providing a path to a tab separated text file")
+        stop("taxo must be either a 2 columns data.frame or a character string providing a path to a 2 columns tab separated text file with no header")
     }
     colnames(reftaxo) <- c("Feature.ID", "Taxon")
     reftaxo <- cbind(reftaxo, split_taxonomy(reftaxo$Taxon,clean = clean_species))
@@ -349,7 +349,7 @@ CV_blastn <- function(
         } else if(is.character(alternative_taxo)) {
             alt_reftaxo <- unique(data.table::fread(taxo, sep = "\t", header = FALSE))
         } else {
-            stop("alternative_taxo must be either NULL or a 2 columns data.frame or a character string providing a path to a tab separated text file")
+            stop("alternative_taxo must be either NULL or a 2 columns data.frame or a character string providing a path to a 2 columns tab separated text file with no header")
         }
         colnames(alt_reftaxo) <- c("Feature.ID", "Taxon")
         alt_reftaxo <- cbind(alt_reftaxo, split_taxonomy(alt_reftaxo$Taxon,

@@ -20,7 +20,7 @@ options(tibble.print_min = 5, tibble.print_max = 5)
 
 **Cross Validation (CV) of DNA barcodes reference databases (refDB) using blast.**
 
-The main aim of this package is to repeatedly blast sequences of a DNA barcode reference database against itself to evaluate the quality of the taxonomic assignments at various taxonomic levels and using different strategies. The package provides also some tools to build the seuqences reference database and some guidance to clean it up. 
+The main aim of this package is to repeatedly blast sequences of a DNA barcode reference database against itself to evaluate the quality of the taxonomic assignments at various taxonomic levels and using different strategies. The package provides also some tools to build the sequences reference database and some guidance to clean it up. 
 
 **There are two main functions :** 
 
@@ -146,6 +146,8 @@ scores[order(scores$Tax_level, -scores$Pct),]
 
 # graph showing the relationship between the % if identity and the % of correct
 # identification
+library(ggplot2)
+library(dplyr)
 assigned_long %>% 
     mutate(CorrectID = Taxon == Taxon_true & !is.na(Taxon)) %>% 
     filter(Method == "TopHitPlus") %>% 
@@ -167,7 +169,7 @@ test <- CV_blastn(fasta_db = fasta, taxo = reftaxo, sequences_subset = 1:10)
 ```
 
 
-Short example on how to build you own reference database of barcode sequences
+Short example on how to build your own reference database of barcode sequences
 and format the taxonomy to feed the Cross Validation functions.
 
 ```{r, eval = FALSE, echo = TRUE}
@@ -193,7 +195,7 @@ lineage <- paste0("k__", taxo$kingdom,
                   "; s__", gsub("^.* ", "", clean_species_name(taxo$name)) 
                   )
 reftaxo <- data.frame(Accession = taxo$accession, 
-                   Taxonomy = lineage)
+                      Taxonomy = lineage)
 test <- CV_blastn(fasta_db = fasta, taxo = reftaxo)
 
 ```
